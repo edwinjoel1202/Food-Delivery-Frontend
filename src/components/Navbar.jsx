@@ -20,13 +20,13 @@ function Navbar() {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
+              <Link className="nav-link" to="/home">Home</Link>
+            </li>
+            <li className="nav-item">
               <Link className="nav-link" to="/login">Login</Link>
             </li>
             <li className="nav-item">
               <Link className="nav-link" to="/register">Register</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/restaurants">Browse Restaurants</Link>
             </li>
           </ul>
         </div>
