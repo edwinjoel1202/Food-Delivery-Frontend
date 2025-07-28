@@ -15,6 +15,11 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/favorites" element={<div>Favorites Page (TBD)</div>} />
+          <Route path="/cart" element={<div>Cart Page (TBD)</div>} />
+          <Route path="/orders" element={<div>My Orders Page (TBD)</div>} />
+          <Route path="/profile" element={<div>Profile Page (TBD)</div>} />
+          <Route path="/restaurants/:id" element={<div>Restaurant Menu Page (TBD)</div>} />
         </Routes>
       </div>
     </Router>

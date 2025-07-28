@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({
+const api = axios.create({
   baseURL: 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json',
@@ -8,7 +8,7 @@ const API = axios.create({
 });
 
 // Add JWT token to requests if available
-API.interceptors.request.use((config) => {
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem('jwtToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -16,20 +16,11 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle errors from backend
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      // Handle specific backend errors (e.g., from GlobalExceptionHandler)
-      const message = error.response.data || 'An error occurred';
-      return Promise.reject(new Error(message));
-    }
-    return Promise.reject(new Error('Network error'));
-  }
-);
+export const login = (credentials) => api.post('/auth/login', credentials);
+export const register = (userData) => api.post('/auth/register', userData);
+export const searchRestaurants = (params) => api.get('/discovery/search', { params });
+export const getPopularRestaurants = () => api.get('/discovery/popular');
+export const getFavoriteRestaurants = () => api.get('/favorites');
+export const getCurrentUser = () => api.get('/users/me');
 
-export const login = (credentials) => API.post('/auth/login', credentials);
-export const register = (userData) => API.post('/auth/register', userData);
-
-export default API;
+export default api;
