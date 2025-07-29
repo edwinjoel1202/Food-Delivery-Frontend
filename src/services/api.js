@@ -22,5 +22,9 @@ export const searchRestaurants = (params) => api.get('/discovery/search', { para
 export const getPopularRestaurants = () => api.get('/discovery/popular');
 export const getFavoriteRestaurants = () => api.get('/favorites');
 export const getCurrentUser = () => api.get('/users/me');
+export const updateUser = (userData) => api.put('/users/me', userData);
+export const updateUserCoordinates = (coordinates) => api.put('/users/me/coordinates', coordinates);
+export const getOwnedRestaurants = () => api.get('/restaurants/owned');
+export const updateRestaurant = (restaurantId, restaurantData) => api.put(`/restaurants/${restaurantId}`, restaurantData);
 
 export default api;

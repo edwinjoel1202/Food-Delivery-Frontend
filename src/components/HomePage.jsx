@@ -8,6 +8,7 @@ function HomePage() {
   const [restaurants, setRestaurants] = useState([]);
   const [popularRestaurants, setPopularRestaurants] = useState([]);
   const [favoriteRestaurants, setFavoriteRestaurants] = useState([]);
+  const [allRestaurants, setAllRestaurants] = useState([]); // New state for all restaurants
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,6 +29,10 @@ function HomePage() {
         // Fetch favorite restaurants
         const favoritesResponse = await getFavoriteRestaurants();
         setFavoriteRestaurants(favoritesResponse.data);
+
+        // Fetch all restaurants
+        const allRestaurantsResponse = await searchRestaurants({}); // No keyword for all active restaurants
+        setAllRestaurants(allRestaurantsResponse.data);
       } catch (err) {
         setError('Failed to load initial data. Please try again.');
       } finally {
@@ -143,6 +148,22 @@ function HomePage() {
           </div>
         ) : (
           <p>No popular restaurants found.</p>
+        )}
+      </div>
+
+      {/* All Restaurants */}
+      <div className="mb-5">
+        <h3>All Restaurants</h3>
+        {loading ? (
+          <p>Loading all restaurants...</p>
+        ) : allRestaurants.length > 0 ? (
+          <div className="row">
+            {allRestaurants.map((restaurant) => (
+              <RestaurantCard key={restaurant.restaurantId} restaurant={restaurant} />
+            ))}
+          </div>
+        ) : (
+          <p>No restaurants found.</p>
         )}
       </div>
     </div>
