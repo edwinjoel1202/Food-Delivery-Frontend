@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap , useMapEvents} from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import axios from 'axios';
@@ -40,10 +40,45 @@ function MapUpdater({ position, setPosition, onCoordinatesChange }) {
 }
 
 function CoordinatesPicker({ initialPosition, onCoordinatesChange }) {
-  const [position, setPosition] = useState(initialPosition || [51.505, -0.09]);
+  // Validate initialPosition
+  const isValidPosition = initialPosition && 
+    Array.isArray(initialPosition) && 
+    initialPosition.length === 2 && 
+    Number.isFinite(initialPosition[0]) && 
+    Number.isFinite(initialPosition[1]);
+
+  const [position, setPosition] = useState(isValidPosition ? initialPosition : [51.505, -0.09]);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Initialize position with saved coordinates or geolocation
+  useEffect(() => {
+    if (isValidPosition) {
+      setPosition(initialPosition);
+      onCoordinatesChange(initialPosition);
+      return;
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (geoPosition) => {
+          const newPosition = [geoPosition.coords.latitude, geoPosition.coords.longitude];
+          setPosition(newPosition);
+          onCoordinatesChange(newPosition);
+          setError('');
+        },
+        (err) => {
+          setError('Unable to access location. Please search or select manually.');
+          console.error('Geolocation error:', err);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      setError('Geolocation is not supported by your browser.');
+    }
+  }, [onCoordinatesChange, isValidPosition, initialPosition]);
 
   // Fetch autocomplete suggestions from Nominatim
   useEffect(() => {
@@ -62,9 +97,11 @@ function CoordinatesPicker({ initialPosition, onCoordinatesChange }) {
             addressdetails: 1,
             limit: 5,
           },
+          headers: { 'User-Agent': 'FoodDeliveryApp' },
         });
         setSuggestions(response.data);
       } catch (error) {
+        setError('Error fetching location suggestions.');
         console.error('Error fetching suggestions:', error);
       } finally {
         setLoading(false);
@@ -85,6 +122,9 @@ function CoordinatesPicker({ initialPosition, onCoordinatesChange }) {
       onCoordinatesChange(newPosition);
       setSuggestions([]);
       setSearchQuery('');
+      setError('');
+    } else {
+      setError('Please select a valid location from the suggestions.');
     }
   };
 
@@ -95,11 +135,34 @@ function CoordinatesPicker({ initialPosition, onCoordinatesChange }) {
     onCoordinatesChange(newPosition);
     setSearchQuery(suggestion.display_name);
     setSuggestions([]);
+    setError('');
+  };
+
+  // Handle manual geolocation
+  const handleUseMyLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (geoPosition) => {
+          const newPosition = [geoPosition.coords.latitude, geoPosition.coords.longitude];
+          setPosition(newPosition);
+          onCoordinatesChange(newPosition);
+          setError('');
+        },
+        (err) => {
+          setError('Unable to access location.');
+          console.error('Geolocation error:', err);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      setError('Geolocation is not supported by your browser.');
+    }
   };
 
   return (
     <div>
       <h5>Select Location</h5>
+      {error && <div className="alert alert-warning">{error}</div>}
       <form onSubmit={handleSearch} className="mb-3">
         <div className="input-group">
           <input
@@ -110,7 +173,7 @@ function CoordinatesPicker({ initialPosition, onCoordinatesChange }) {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? <span className="spinner-border spinner-border-sm" /> : 'Search'}
           </button>
         </div>
         {suggestions.length > 0 && (
@@ -128,6 +191,13 @@ function CoordinatesPicker({ initialPosition, onCoordinatesChange }) {
           </ul>
         )}
       </form>
+      <button
+        className="btn btn-secondary mb-3"
+        onClick={handleUseMyLocation}
+        disabled={loading}
+      >
+        Use My Location
+      </button>
       <MapContainer center={position} zoom={13} style={{ height: '400px', width: '100%' }}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
